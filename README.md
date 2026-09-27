@@ -7,6 +7,8 @@ a web-extension for Chromium (edge, cromite) and Firefox based browsers.
 - sort all tabs (by their URLs).
 - close all other windows and their tabs.
 
+<img src="screenshot1.png" />  
+
 great when you restore crashed or previous session, 
 undo windows and tabs, open a lot of items from history,  
 and open a ton of links from a search-engine,  
