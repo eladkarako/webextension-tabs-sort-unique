@@ -1,0 +1,10 @@
+/chrome/
+/chrome/*
+/firefox/
+/firefox/*
+
+/chrome.zip
+/firefox.zip
+
+/__alternative_*.js
+

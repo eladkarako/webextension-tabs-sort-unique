@@ -1,0 +1,4 @@
+{ "name_shrt" : {"message": "tabs-sort-unique"      }
+, "name_long" : {"message": "tabs-sort-unique"      }
+, "name_desc" : {"message": "single window, sorted tabs, no duplications." }
+}
