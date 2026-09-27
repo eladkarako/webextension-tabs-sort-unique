@@ -7,7 +7,7 @@
 ,"short_name"                : "__MSG_name_shrt__"
 ,"description"               : "__MSG_name_desc__"
 ,"permissions"               : ["tabs"]
-,"background"                : {"scripts"        : "sw.js"
+,"background"                : {"scripts"        : ["sw.js"]
                                ,"type"           : "module"
                                }
 ,"browser_specific_settings" : {"gecko":{"id"                          : "tabs-sort-unique@webextension"
