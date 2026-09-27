@@ -1,2 +1,15 @@
+26.9.28
+* making the code more efficient.
+* instead of query for all window then filter the new window from them (loop) just query the windows before creating the new window.
+- seems trying to discard the tabs before moving them creates errors of 'tab with id XXXXXXXX not found', until error handling not trying to discard tabs.
+* creating the new window unfocused+normal, updating to unfocused+minimized (implicitly most OS will avoid some rendering), after moving the tabs, updating to focused+maximized.
+* moving the tabs in maximum parallel (ignore failing) 1 api call per tab (no use of array of ids), then when it all in the same window, using the same api again in a loop, explicitly moving to specific index, identical to the tab index in the array. as the move-api with array of ids is very slow and does not provide matching placement to the given array (usually move api with index -1 means push all given tabs based on their array of ids to the end of the exiting tabs in that specific window, BUT - the api does not preserve that order).
++ disabling the button when click starts and bring it back when job ends (global for all tabs), with no error handling, this might (probably) break, a good use-case is to move all the functionality from the click handler so some of the functionality could be using error handling (and "finally").
+
++ turning off the button and turning it on again when job is done, avoid clicks and add visual indication for job length.
++ trying to discard the tabs that will be moved to new window, emulating lazyloading like firefox session restore. 
++ store the normalized_url, used as key in the tab object while working, might be useful.
+* when unique and sorting tabs, first unique them as objects (needs some attributes), then sort the keys (normalized_url), then map keys to tab object to create a sorted array of tabs. this is since we need the tabs a bit longer for 
+
 26.9.27
 + initial.

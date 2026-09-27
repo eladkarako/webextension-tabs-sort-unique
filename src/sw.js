@@ -41,28 +41,36 @@ const click_handler = async ()=>{
     throw error;
   }
 
-  const [tabs_all, other_windows] = await Promise.all([api.tabs.query({}), api.windows.getAll({})]);  //at this point in time the "new window" hasn't been created yes.
+  await api.action.disable(); //disable the button until job is done
 
-  const tabs_unique = {};
-  tabs_all.forEach(tab=>{
-    const key = normalize_url(tab.url);
-    tabs_unique[key] = tab;
-  });
+  const tabs_all          = await api.tabs.query({});
 
-  const ids_tabs = Object.keys(tabs_unique)         //pre-extract keys (which are urls slightly normalized)
-                   .sort(natural_compare)           //pre-sort by the keys
-                   .map(key=>tabs_unique[key].id)   //extract a tab base on its url, in sorted order, get its id.
-                   ;
+  let tabs = tabs_all.reduce((carry,current,index,array)=>{
+               const key = normalize_url(current.url);
+               carry[key] = current;
+               return carry;
+             },{});
 
+  tabs = Object.keys(tabs)
+               .sort(natural_compare)
+               .map(key=>tabs[key]);
 
-  create_data.tabId = ids_tabs[0]; //create window without new-tab page needs at least one real tab, using the id of the first tab in the sorted array of unique tabs that would be moving to it anyway. move function will run again and won't do much for the first one.
-  const w           = await api.windows.create(create_data);
-  await api.windows.update(w.id, update_info);                                    //make the window focused and maximized before moving tabs, since window resize trigger reflow.
-  await api.tabs.move(ids_tabs, {index:-1, windowId:w.id});                       //move unique tabs to new window.
-  await api.tabs.update(ids_tabs[0], {active:true});                              //normalize to only make the first tab active.
-  await api.tabs.update(ids_tabs[0], {active:true});                              //normalize to only make the first tab active.
+  create_data.tabId   = tabs[0].id                                                             //windows with actual tab instead of start page or new tab page. removing first id from moving tabs as well.
+  const other_windows = await api.windows.getAll({});                                          //still have not created the new window, in the next line, this result will show other window, without the new window. this way no need to filter windows and exclude the new window id.
+  const w             = await api.windows.create(create_data);                                 //create new window (to ease up closing other tabs by closing their window).
+  await api.windows.update(w.id, {focused:false, state:api.windows.WindowState.MINIMIZED});    //unfocused and minimized means it takes less RAM.
 
-  return Promise.allSettled(other_windows.map(ww => api.windows.remove(ww.id)));  //close all other windows (and their tabs).
+  await Promise.allSettled(tabs.map(tab=>api.tabs.move(tab.id, {index:-1, windowId:w.id})));   //parallel move every single tab, to new window. order is not important.
+  for(let i=0; i<tabs.length; i+=1){                                                           //re-order, based on the order in the array.
+    await api.tabs.move(tabs[i].id, {index:i, windowId:w.id});
+  }
+
+  await api.tabs.update(create_data.tabId, {active:true});                                     //normalize active tab to first one.
+  await api.windows.update(w.id, {focused:true, state:api.windows.WindowState.MAXIMIZED});     //work done for this window. time to make it "visible" which will take more RAM..
+
+  await Promise.allSettled(other_windows.map(ww => api.windows.remove(ww.id)));                //close all other windows (and their tabs).
+  await api.action.enable(); //re-enable the button since job is done.
+  return true;
 };
 
 
